@@ -1,0 +1,52 @@
+# RaceDay — Programming 2B POE, Part 2
+
+**Technology:** C#, ASP.NET Core Web API (.NET 8), SQL Server, Entity Framework Core, server-side session authentication, BCrypt password hashing, Swagger, xUnit and GitHub Actions.
+
+> **Submission integrity note:** This is a project implementation pack, not proof that it has already run in your local environment or on GitHub. Build it locally, run the tests, replace the server name, capture your own green CI screenshot, record your own unlisted demonstration video, and add your actual repository/video links before submission. Do not claim a green build until GitHub Actions shows one.
+
+## Roles
+
+- **Organiser:** manages only their own events and categories, views enrolments for their events, and records results for those enrolments.
+- **Participant:** browses events and categories, updates their own profile, enrols in events, and views their own published results.
+
+Passwords are hashed using BCrypt. Successful login stores `UserId`, `Role`, and `Email` in ASP.NET Core server-side session. Session cookie is HTTP-only.
+
+## Database
+
+The model maps to the five tables in the supplied Part 1 `RaceDayDB` script: `Users`, `Events`, `Categories`, `Enrolments`, and `Results`. The SQL script inserts placeholder password values for its demo users; those values are not valid BCrypt hashes and cannot be used to log in. Register a new account through the API, or update demo password hashes using a safe, generated BCrypt hash before using those accounts.
+
+
+
+Command-line equivalent from the repository root:
+
+```bash
+dotnet restore RaceDay.API.Tests/RaceDay.API.Tests.csproj
+dotnet build RaceDay.API/RaceDay.API.csproj
+dotnet test RaceDay.API.Tests/RaceDay.API.Tests.csproj
+dotnet run --project RaceDay.API/RaceDay.API.csproj
+```
+
+## API endpoints
+
+| Method | Route | Access | Purpose |
+|---|---|---|---|
+| POST | `/api/auth/register` | Public | Register Organiser/Participant |
+| POST | `/api/auth/login` | Public | Login and create session |
+| POST | `/api/auth/logout` | Session | Clear session |
+| GET | `/api/users/me` | Session | View own profile |
+| PUT | `/api/users/me` | Session | Update own profile |
+| GET | `/api/events` | Public | List events |
+| GET | `/api/events/{id}` | Public | Event details and categories |
+| POST | `/api/events` | Organiser | Create event |
+| PUT | `/api/events/{id}` | Organiser/owner | Update own event |
+| DELETE | `/api/events/{id}` | Organiser/owner | Delete own event |
+| GET | `/api/categories?eventId={id}` | Public | List categories |
+| POST | `/api/categories/event/{eventId}` | Organiser/owner | Create category |
+| PUT | `/api/categories/{id}` | Organiser/owner | Update category |
+| DELETE | `/api/categories/{id}` | Organiser/owner | Delete category |
+| POST | `/api/enrolments` | Participant | Enrol using `categoryId` |
+| GET | `/api/enrolments/mine` | Session | View own enrolments |
+| GET | `/api/enrolments/all/{eventId}` | Organiser/owner | View event enrolments |
+| PUT | `/api/results/enrolment/{enrolmentId}` | Organiser/owner | Record/update result |
+| GET | `/api/results/mine` | Session | View own published results |
+
