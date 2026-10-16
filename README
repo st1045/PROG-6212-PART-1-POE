@@ -1,1 +1,138 @@
 
+#Programming 2B PART 2 
+
+**Technology:** C#, ASP.NET Core Web API (.NET 8), SQL Server, Entity Framework Core, server-side session authentication, BCrypt password hashing, Swagger, xUnit and GitHub Actions.
+
+**Submission integrity note:** This is a project implementation pack, not proof that it has already run in your local environment or on GitHub. Build it locally, run the tests, replace the server name, capture your own green CI screenshot, record your own unlisted demonstration video, and add your actual repository/video links before submission. Do not claim a green build until GitHub Actions shows one.
+
+## Roles
+
+- **Organiser:** manages only their own events and categories, views enrolments for their events, and records results for those enrolments.
+- **Participant:** browses events and categories, updates their own profile, enrols in events, and views their own published results.
+
+Passwords are hashed using BCrypt. Successful login stores `UserId`, `Role`, and `Email` in ASP.NET Core server-side session. Session cookie is HTTP-only.
+
+## Database
+
+The model maps to the five tables in the supplied Part 1 `RaceDayDB` script: `Users`, `Events`, `Categories`, `Enrolments`, and `Results`. The SQL script inserts placeholder password values for its demo users; those values are not valid BCrypt hashes and cannot be used to log in. Register a new account through the API, or update demo password hashes using a safe, generated BCrypt hash before using those accounts.
+
+### Important database warning
+
+The supplied SQL script begins by dropping and recreating `RaceDayDB`. Do not run it again if you need to preserve existing data. Back up any database first.
+
+## Setup in Visual Studio 2022
+
+1. Install the .NET 8 SDK and SQL Server/SSMS.
+2. Open `RaceDay.API/RaceDay.API.csproj` in Visual Studio.
+3. In `RaceDay.API/appsettings.json`, replace `YOUR_SERVER_NAME` with the SQL Server instance used by your SSMS connection. Keep secrets out of source control.
+4. Run the supplied Part 1 SQL script only on a disposable/new database, or create the schema using your approved Part 1 database setup.
+5. Restore NuGet packages.
+6. Set `RaceDay.API` as the startup project and run it.
+7. Open `https://localhost:7191/swagger` (or the URL shown in the launch profile).
+
+Command-line equivalent from the repository root:
+
+```bash
+dotnet restore RaceDay.API.Tests/RaceDay.API.Tests.csproj
+dotnet build RaceDay.API/RaceDay.API.csproj
+dotnet test RaceDay.API.Tests/RaceDay.API.Tests.csproj
+dotnet run --project RaceDay.API/RaceDay.API.csproj
+```
+
+## API endpoints
+
+| Method | Route | Access | Purpose |
+|---|---|---|---|
+| POST | `/api/auth/register` | Public | Register Organiser/Participant |
+| POST | `/api/auth/login` | Public | Login and create session |
+| POST | `/api/auth/logout` | Session | Clear session |
+| GET | `/api/users/me` | Session | View own profile |
+| PUT | `/api/users/me` | Session | Update own profile |
+| GET | `/api/events` | Public | List events |
+| GET | `/api/events/{id}` | Public | Event details and categories |
+| POST | `/api/events` | Organiser | Create event |
+| PUT | `/api/events/{id}` | Organiser/owner | Update own event |
+| DELETE | `/api/events/{id}` | Organiser/owner | Delete own event |
+| GET | `/api/categories?eventId={id}` | Public | List categories |
+| POST | `/api/categories/event/{eventId}` | Organiser/owner | Create category |
+| PUT | `/api/categories/{id}` | Organiser/owner | Update category |
+| DELETE | `/api/categories/{id}` | Organiser/owner | Delete category |
+| POST | `/api/enrolments` | Participant | Enrol using `categoryId` |
+| GET | `/api/enrolments/mine` | Session | View own enrolments |
+| GET | `/api/enrolments/all/{eventId}` | Organiser/owner | View event enrolments |
+| PUT | `/api/results/enrolment/{enrolmentId}` | Organiser/owner | Record/update result |
+| GET | `/api/results/mine` | Session | View own published results |
+
+### Example registration request
+
+```json
+{
+  "firstName": "Sam",
+  "lastName": "Example",
+  "email": "sam@example.com",
+  "password": "RaceDay!2026",
+  "phoneNumber": "0825550105",
+  "role": "Participant"
+}
+```
+
+### Example login request
+
+```json
+{
+  "email": "sam@example.com",
+  "password": "RaceDay!2026"
+}
+```
+
+### Example event request (Organiser session required)
+
+```json
+{
+  "name": "Pretoria 10K",
+  "description": "Community road running event",
+  "eventDate": "2026-11-15",
+  "location": "Pretoria, Gauteng",
+  "distanceKm": 10.00,
+  "eventType": "Run",
+  "bannerImageUrl": null
+}
+```
+
+### Example enrolment request (Participant session required)
+
+```json
+{ "categoryId": 1 }
+```
+
+### Example result request (event Organiser session required)
+
+```json
+{
+  "finishTime": "00:48:35",
+  "finishingPosition": 12,
+  "published": true
+}
+```
+
+## Session behaviour in Swagger
+
+The API uses a session cookie. Call `POST /api/auth/login` first, then call protected routes with the same browser session/cookie. For automated clients, preserve the session cookie between requests. Swagger cookie persistence may vary by browser and local HTTP/HTTPS setup.
+
+## Tests and CI/CD
+
+The test project includes unit tests for BCrypt hash verification, supported roles, event type validation and positive distance validation. GitHub Actions is configured to restore, build and test on every push and pull request.
+
+
+**GitHub repository:** _Add your repository URL here._
+
+**Unlisted demonstration video:** _Add your YouTube URL here._
+
+## Known scope and verification notes
+
+- The supplied Part 1 SQL seed users contain placeholder password strings. They must not be treated as login-ready accounts.
+- The code enforces roles in middleware and additionally checks event ownership in the relevant controller actions.
+- Test coverage is a starting suite and does not replace the rubric's requested success/failure API tests. Add integration tests for register/login, unauthenticated access, Organiser event CRUD/ownership, Participant enrolment and duplicate enrolment before final submission.
+- The C# entity mappings are designed to reflect the supplied SQL schema. Confirm them against your local SQL Server, and if your lecturer requires EF Core Code-First migrations to create the database, add and test a migration that matches the Part 1 schema before submitting.
+- This pack does not include a genuine GitHub Actions screenshot, a real GitHub repository URL, or a YouTube recording because those must come from your own account and execution.
+
