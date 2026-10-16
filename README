@@ -136,3 +136,5 @@ The test project includes unit tests for BCrypt hash verification, supported rol
 - The C# entity mappings are designed to reflect the supplied SQL schema. Confirm them against your local SQL Server, and if your lecturer requires EF Core Code-First migrations to create the database, add and test a migration that matches the Part 1 schema before submitting.
 - This pack does not include a genuine GitHub Actions screenshot, a real GitHub repository URL, or a YouTube recording because those must come from your own account and execution.
 
+YOUTUBE 
+https://youtu.be/LUXYUtsexMY
